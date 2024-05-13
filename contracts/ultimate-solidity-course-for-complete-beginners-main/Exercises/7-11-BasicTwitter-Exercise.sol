@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 pragma solidity ^0.8.0;
 
-contract Twitter is Ownable{
+contract Twitter is Ownable {
 
     uint256 public MAX_TWEET_LENGTH = 280;
     struct Tweet {
