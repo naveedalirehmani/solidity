@@ -1,16 +1,9 @@
 // SPDX-License-Identifier: MIT
-
-// 1️⃣ Create Event for creating the tweet, called TweetCreated ✅
-// USE parameters like id, author, content, timestamp
-// 2️⃣ Emit the Event in the createTweet() function below  ✅
-// 3️⃣ Create Event for liking the tweet, called TweetLiked ✅ 
-// USE parameters like liker, tweetAuthor, tweetId, newLikeCount
-// 4️⃣ Emit the event in the likeTweet() function below  ✅
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 pragma solidity ^0.8.0;
 
-contract Twitter {
-
+contract Twitter is Ownable {
     uint16 public MAX_TWEET_LENGTH = 280;
 
     struct Tweet {
@@ -20,22 +13,14 @@ contract Twitter {
         uint256 timestamp;
         uint256 likes;
     }
-    mapping(address => Tweet[] ) public tweets;
-    address public owner;
+    mapping(address => Tweet[]) public tweets;
 
     // Define the events
     event TweetCreated(uint256 id, address author, string content, uint256 timestamp);
     event TweetLiked(address liker, address tweetAuthor, uint256 tweetId, uint256 newLikeCount);
     event TweetUnliked(address unliker, address tweetAuthor, uint256 tweetId, uint256 newLikeCount);
 
-    constructor() {
-        owner = msg.sender;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "YOU ARE NOT THE OWNER!");
-        _;
-    }
+    constructor() Ownable(msg.sender) {}
 
     function changeTweetLength(uint16 newTweetLength) public onlyOwner {
         MAX_TWEET_LENGTH = newTweetLength;
@@ -76,7 +61,7 @@ contract Twitter {
         emit TweetUnliked(msg.sender, author, id, tweets[author][id].likes );
     }
 
-    function getTweet( uint _i) public view returns (Tweet memory) {
+    function getTweet(uint _i) public view returns (Tweet memory) {
         return tweets[msg.sender][_i];
     }
 
