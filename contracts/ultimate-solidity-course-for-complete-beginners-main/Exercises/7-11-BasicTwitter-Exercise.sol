@@ -4,7 +4,18 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 pragma solidity ^0.8.0;
 
+interface IProfile {
+    struct UserProfile {
+        string displayName;
+        string bio;
+    }
+    
+    function getProfile(address _user) external view returns (UserProfile memory);
+}
+
 contract Twitter is Ownable {
+
+    IProfile private profileContract;
 
     uint256 public MAX_TWEET_LENGTH = 280;
     struct Tweet {
@@ -20,7 +31,15 @@ contract Twitter is Ownable {
     event TweetLiked(address liker, address tweetAuthor, uint256 tweetId, uint256 totalLikeCount);
     event UnlikeTweet(address unLiker, address tweetAuthor, uint256 tweetid, uint256 totalLikeCount);
 
-    constructor() Ownable(msg.sender) {}
+    modifier onlyRegistered() {
+        IProfile.UserProfile memory tempProfile = profileContract.getProfile(msg.sender);
+        require(bytes(tempProfile.displayName).length > 0 ,"You don't have a profile.");
+        _;
+    }
+
+    constructor(address _userContractAddress) Ownable(msg.sender) {
+        profileContract = IProfile(_userContractAddress);
+    }
 
     // change max tweet lenth only by author
     function maxTweetLength (uint256 _newTwtLength) public onlyOwner {
@@ -28,7 +47,7 @@ contract Twitter is Ownable {
     }
 
     // create a tweet
-    function addtweet(string memory _twt) public {
+    function addtweet(string memory _twt) public onlyRegistered {
 
         require(bytes(_twt).length <= MAX_TWEET_LENGTH, "A tweet must not be more than 280 charectors long");
 
@@ -46,7 +65,7 @@ contract Twitter is Ownable {
     }
     
     // like tweet
-    function likeTweet(uint256 id, address author) external {
+    function likeTweet(uint256 id, address author) external onlyRegistered {
         require(tweetMap[author][id].id == id, "tweet does not exist");
         tweetMap[author][id].likes++;
 
@@ -54,7 +73,7 @@ contract Twitter is Ownable {
     }
     
     // unlike tweet
-    function unLikeTweet(uint256 id, address author) external {
+    function unLikeTweet(uint256 id, address author) external onlyRegistered {
         require(tweetMap[author][id].id == id, "tweet does not exist");
         require(tweetMap[author][id].likes > 0, "Tweet has no likes");
         
